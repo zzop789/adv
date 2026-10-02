@@ -59,6 +59,9 @@ export interface StoryActions {
 }
 
 export interface LoadedGame {
+  /** A content lease, not a saved-game or authoring document revision. */
+  loadId: string;
+  previewEnabled: boolean;
   game: GameInfo;
   story: StoryDefinition;
   videoUrls: Record<string, string>;
@@ -90,6 +93,7 @@ export interface PlaybackActions {
 
 export interface DesktopApi {
   loadGame(): Promise<GameLoadResult>;
+  releaseGame(loadId: string): Promise<void>;
   setFullscreen(value: boolean): Promise<boolean>;
   getFullscreen(): Promise<boolean>;
 }

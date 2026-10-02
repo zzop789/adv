@@ -13,8 +13,10 @@
     "package": "node tools/package.mjs",
     "package:all": "node tools/package.mjs --all",
     "typecheck": "tsc --noEmit",
+    "story": "node --import tsx tools/story.mts",
     "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
     "test:smoke": "node tools/smoke.mjs",
+    "test:preview": "node tools/smoke-preview.mjs",
     "check": "npm run typecheck && npm test"
   },
   "engines": {

@@ -6,7 +6,9 @@
 
 第一次制作作品请从 [新建游戏教程](docs/new-game-tutorial.md) 开始：包含复制模板、视频放置、完整分支配置、UI 修改位置、打包步骤及功能清单。
 
-设计与开发顺序以 [PC 框架设计基线](docs/adv-pc-framework-design.md) 为准。阶段 3 首次交付的审查与验证记录见 [阶段 3 Review](docs/review-stage-3.md)。下一阶段是标题菜单、设置持久化和节点检查点存档。
+设计与开发顺序以 [PC 框架设计基线](docs/adv-pc-framework-design.md) 为准。阶段 3 首次交付的审查与验证记录见 [阶段 3 Review](docs/review-stage-3.md)。当前插入制作 API 阶段，先提供流程编辑、安全保存和重载预览，再补运行中内容应用及动效；标题菜单、设置持久化和节点存档继续后置。
+
+制作接口与调用示例见 [流程编辑、内容修改与动效 API](docs/authoring-api-design.md)。目前提供 `StoryEditor`、本地剧情保存 API、`npm run story` 和开发窗口“重新载入预览”；保留进度的内容更新、统一动效 API 和可视化节点编辑器仍待开发。
 
 UI 已拆分为通用控件、独立界面、作品布局和代码调用管理器，详见 [UI 架构与调用示例](docs/ui-architecture.md)。现有设置弹窗复用音量与全屏功能，尚未加入设置持久化。
 
@@ -29,7 +31,7 @@ npm start -- --game afterglow
 
 所有作品命令默认选择 `demo`，使用 `--game <作品 ID>` 切换。`npm start` 会校验类型、剧情和素材并构建，再启动桌面窗口。构建完成后，可以运行 `npm run start:built -- --game afterglow` 直接打开现有构建。
 
-开发界面时使用 `npm run dev -- --game afterglow`。它启动本机开发服务和 Electron，修改 UI 可实时预览；修改剧情、素材或桌面进程代码后重启该命令。正常运行不需要开发服务。
+开发界面时使用 `npm run dev -- --game afterglow`。它启动本机开发服务和 Electron，修改 UI 可实时预览；修改剧情、作品文案或素材映射后，点击“重新载入预览（从头开始）”。校验成功后回到入口，失败保留旧会话。修改桌面进程代码、作品 ID 或构建身份后重启该命令。正常运行不需要开发服务。
 
 ## 独立打包
 
@@ -56,6 +58,7 @@ npm run package:all
 - UI 更新时保留同一个视频元素与控制器。
 - 重复选择和旧播放回调不能推动新剧情；错误不会被当成正常完成。
 - 构建前校验重复 ID、跳转目标、素材存在性、不可达节点及无法到达结局的循环。
+- 制作端节点编辑、连线、撤销重做、版本冲突检查和本地保存；开发态显式重载预览。
 
 本阶段不包含存档、条件变量、立绘文字、QTE、调查和多端适配。
 
@@ -115,6 +118,7 @@ npm run package:all
 
 ```powershell
 npm run check
+npm run test:preview
 npm run test:smoke -- --game demo
 npm run test:smoke -- --game afterglow
 npm run package:all
@@ -123,6 +127,8 @@ npm run test:smoke -- --game afterglow --packaged
 ```
 
 `check` 执行类型检查和行为测试，覆盖剧情分支、播放代次、过期异步结果、配置、路径边界、构建输出恢复，以及通用控件、界面实例和弹窗协调。
+
+制作 API 测试还覆盖草稿历史与隔离、候选校验、文件保存冲突、版本化素材映射，以及重载会话生命周期。`test:preview` 使用临时作品副本启动真实 Electron 和本机 Vite，检查重载成功、失败保留、修复重试和旧内容释放，不修改正式作品文件。
 
 `test:smoke` 构建并启动真实 Electron，检查离线播放、两条分支、两个结局、重播/重开、重复点击、过期事件、设置弹窗、焦点、暂停恢复、全屏和最小窗口；异常素材只写入 `test-results/` 副本。`--built` 使用现有构建；`--packaged` 直接启动已经生成的作品 EXE。截图位于已被 Git 忽略的 `test-results/`。
 

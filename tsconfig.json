@@ -13,5 +13,5 @@
     "types": ["node", "vite/client"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "games/*/ui", "tests", "vite.config.ts"]
+  "include": ["src", "games/*/ui", "tests", "tools/*.mts", "vite.config.ts"]
 }

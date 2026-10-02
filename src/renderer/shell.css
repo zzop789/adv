@@ -9,3 +9,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid #d6b67b; outline-
 .adv-shell-state h1 { font-size: 28px; font-weight: 500; margin-top: 24px; }
 .adv-shell-state p { color: #b8b5ad; max-width: 600px; line-height: 1.8; }
 .adv-shell-state button { color: #101213; background: #d6b67b; padding: 12px 26px; border: 0; border-radius: 4px; margin-top: 20px; }
+.adv-preview-tools { position: fixed; z-index: 1000; right: 14px; bottom: 11px; max-width: min(590px, calc(100vw - 28px)); padding: 8px 10px; border: 1px solid #78859480; border-radius: 6px; background: #172029f2; color: #e3eaf0; box-shadow: 0 3px 15px #0003; font: 11px/1.6 "Segoe UI", "Microsoft YaHei", sans-serif; }
+.adv-preview-tools-row { display: flex; align-items: center; gap: 13px; }
+.adv-preview-label { color: #a5b8c7; white-space: nowrap; }
+.adv-preview-tools button { padding: 5px 10px; border: 1px solid #7791a9; border-radius: 3px; background: #314557; color: #f0f5f9; font-size: 11px; cursor: pointer; }
+.adv-preview-tools button:hover:not(:disabled) { background: #405b70; }
+.adv-preview-tools button:disabled { opacity: .55; cursor: default; }
+.adv-preview-tools button:focus-visible { outline: 2px solid #bad9f1; outline-offset: 3px; }
+.adv-preview-error { margin: 7px 0 0; max-height: 6.5em; overflow: auto; color: #ffcbba; overflow-wrap: anywhere; }

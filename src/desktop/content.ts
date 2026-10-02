@@ -64,14 +64,15 @@ function requireMediaDirectory(file: string): void {
   if (!normalized.startsWith('media/')) throw new Error('视频和图标必须放在作品的 media/ 目录内，保证构建时完整复制。');
 }
 
-export async function loadGameContent(gameDirectory: string): Promise<GameContent> {
+export async function loadGameContent(gameDirectory: string, candidate?: { story: unknown }): Promise<GameContent> {
   const root = await realpath(gameDirectory);
   const gameResult = gameSchema.safeParse(await readJson(path.join(root, 'game.json')));
   if (!gameResult.success) throw new Error('game.json 配置不正确，请检查作品信息和 schemaVersion。');
   const assetsResult = assetsSchema.safeParse(await readJson(path.join(root, 'assets.json')));
   if (!assetsResult.success) throw new Error('assets.json 配置不正确，请检查素材映射和 schemaVersion。');
   const { schemaVersion: _version, build, ...game } = gameResult.data;
-  const storyResult = storySchema.safeParse(await readJson(path.join(root, 'story.json')));
+  // Authoring tools validate drafts without overwriting the current document first.
+  const storyResult = storySchema.safeParse(candidate ? candidate.story : await readJson(path.join(root, 'story.json')));
   if (!storyResult.success) throw new Error('story.json 格式不正确，请检查节点字段和 schemaVersion。');
   const videos = new Map<string, string>();
   for (const [mediaId, asset] of Object.entries(assetsResult.data.videos)) {

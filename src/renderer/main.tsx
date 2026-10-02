@@ -8,13 +8,14 @@ import type { WorkLayoutProps } from '../ui/contracts';
 import { UIHost, UIOutlet } from '../ui/UIHost';
 import { bindPlayerUI, createPlayerUI } from '../ui/player-ui';
 import { SettingsScreen } from '../ui/screens/SettingsScreen';
+import { PreviewController } from './preview-controller';
 import './shell.css';
 import '../ui/ui.css';
 
 const screens = { ...WorkUI.screens, settings: WorkUI.screens.settings ?? SettingsScreen };
 const Layout = WorkUI.Layout;
 
-function Player({ content }: { content: LoadedGame }) {
+function Player({ content, preview }: { content: LoadedGame; preview: PreviewController }) {
   const videoHostRef = useRef<HTMLDivElement>(null);
   const presenter = useRef<ReturnType<typeof bindPlayerUI> | null>(null);
   const [{ video, session, ui }] = useState(() => {
@@ -40,10 +41,18 @@ function Player({ content }: { content: LoadedGame }) {
     },
   }), [session]);
   useEffect(() => {
+    preview.mount(content.loadId);
     videoHostRef.current?.append(video);
     presenter.current = bindPlayerUI(ui, session, content.game, actions);
-    return () => { presenter.current?.dispose(); presenter.current = null; ui.dispose(); session.dispose(); video.remove(); };
-  }, [session, video, ui, content.game, actions]);
+    return () => {
+      presenter.current?.dispose();
+      presenter.current = null;
+      ui.dispose();
+      session.dispose();
+      video.remove();
+      preview.unmount(content.loadId);
+    };
+  }, [session, video, ui, content.game, content.loadId, actions, preview]);
   const openSettings = useCallback(() => presenter.current?.openSettings(), []);
 
   useEffect(() => {
@@ -77,31 +86,33 @@ function Player({ content }: { content: LoadedGame }) {
 }
 
 function App() {
-  const [content, setContent] = useState<LoadedGame | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (!window.adv) throw new Error('请通过桌面程序启动作品。');
-      const result = await window.adv.loadGame();
-      if (!result.ok) throw new Error(result.error);
-      document.title = result.value.game.title;
-      setContent(result.value);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : '无法读取作品。');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  useEffect(() => { void load(); }, [load]);
-  if (content) return <Player content={content} />;
+  const [preview] = useState(() => new PreviewController({
+    loadGame: () => {
+      if (!window.adv) return Promise.reject(new Error('请通过桌面程序启动作品。'));
+      return window.adv.loadGame();
+    },
+    releaseGame: (loadId) => window.adv.releaseGame(loadId),
+  }));
+  const { content, error, loading } = useSyncExternalStore(preview.subscribe, preview.getSnapshot);
+  useEffect(() => { void preview.load(); return () => preview.dispose(); }, [preview]);
+  useEffect(() => { if (content) document.title = content.game.title; }, [content]);
+  if (content) return <>
+    <Player key={content.loadId} content={content} preview={preview} />
+    {content.previewEnabled && <aside className="adv-preview-tools" aria-label="制作预览工具" aria-busy={loading}>
+      <div className="adv-preview-tools-row">
+        <span className="adv-preview-label">制作预览</span>
+        <button type="button" disabled={loading} onClick={() => void preview.load()}>
+          {loading ? '正在重新载入…' : '重新载入预览（从头开始）'}
+        </button>
+      </div>
+      {error && <p className="adv-preview-error" role="alert">重新载入失败，当前播放已保留：{error}</p>}
+    </aside>}
+  </>;
   return <main className="adv-shell-state">
     <span className="adv-shell-eyebrow">ADV / LOCAL CINEMA</span>
     <h1>{loading ? '正在准备演出' : '暂时无法打开作品'}</h1>
     <p role={error ? 'alert' : undefined}>{error ?? '正在读取本地内容。'}</p>
-    {error && <button onClick={() => void load()}>重新加载</button>}
+    {error && <button disabled={loading} onClick={() => void preview.load()}>重新加载</button>}
   </main>;
 }
 

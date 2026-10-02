@@ -3,8 +3,7 @@ import type { IpcMainInvokeEvent } from 'electron';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadGameContent, resolveContentFile } from './content';
-import type { GameContent } from './content';
-import { serveLocalMedia } from './local-media';
+import { ContentRegistry } from './content-registry';
 import type { GameLoadResult } from '../runtime/types';
 
 protocol.registerSchemesAsPrivileged([
@@ -19,7 +18,8 @@ const devUrl = !app.isPackaged && __ADV_GAME_SOURCE__ !== null && process.env.AD
 const gameDirectory = devUrl && __ADV_GAME_SOURCE__ ? __ADV_GAME_SOURCE__ : path.join(projectRoot, 'games', __ADV_GAME_ID__);
 const rendererUrl = devUrl ?? 'adv-app://app/index.html';
 let window: BrowserWindow | null = null;
-let content: GameContent | null = null;
+const contents = new ContentRegistry();
+let rendererGeneration = 0;
 
 app.setName(__ADV_GAME_TITLE__);
 app.setPath('userData', path.join(app.getPath('appData'), `${__ADV_APP_ID__}${hiddenTest ? '.smoke' : ''}`));
@@ -53,7 +53,13 @@ async function createWindow() {
   });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event) => event.preventDefault());
-  window.on('closed', () => { window = null; });
+  window.webContents.on('did-start-navigation', (_event, _url, isInPlace, isMainFrame) => {
+    if (isMainFrame && !isInPlace) {
+      rendererGeneration += 1;
+      contents.clear();
+    }
+  });
+  window.on('closed', () => { window = null; rendererGeneration += 1; contents.clear(); });
   window.once('ready-to-show', () => { if (!hiddenTest) window?.show(); });
   await window.loadURL(rendererUrl);
 }
@@ -62,7 +68,7 @@ void app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   session.defaultSession.setPermissionCheckHandler(() => false);
-  protocol.handle('adv-media', (request) => serveLocalMedia(request, content));
+  protocol.handle('adv-media', (request) => contents.serve(request));
   protocol.handle('adv-app', async (request) => {
     try {
       const url = new URL(request.url);
@@ -76,21 +82,24 @@ void app.whenReady().then(async () => {
   });
   ipcMain.handle('adv:load-game', async (event): Promise<GameLoadResult> => {
     const owner = verifySender(event);
+    const generation = rendererGeneration;
     try {
-      content = await loadGameContent(gameDirectory);
+      const content = await loadGameContent(gameDirectory);
       if (content.game.id !== __ADV_GAME_ID__) throw new Error('作品 ID 与构建目标不一致，请重新构建。');
+      const icon = await resolveContentFile(content.root, content.build.icon);
+      if (generation !== rendererGeneration || owner.isDestroyed()) throw new Error('预览页面已关闭或刷新，本次内容加载已取消。');
+      owner.setIcon(icon);
       owner.setTitle(content.game.title);
-      owner.setIcon(await resolveContentFile(content.root, content.build.icon));
-      return { ok: true, value: {
-        game: content.game,
-        story: content.story,
-        videoUrls: Object.fromEntries([...content.videos.keys()].map((id) => [id, `adv-media://asset/${id}`])),
-      } };
+      return { ok: true, value: contents.register(content, Boolean(devUrl)) };
     } catch (error) {
-      content = null;
       console.error('作品加载失败', error);
       return { ok: false, error: error instanceof Error ? error.message : '作品内容无法读取。' };
     }
+  });
+  ipcMain.handle('adv:release-game', (event, loadId: unknown) => {
+    verifySender(event);
+    if (typeof loadId !== 'string') throw new Error('内容加载标识不正确。');
+    contents.release(loadId);
   });
   ipcMain.handle('adv:set-fullscreen', (event, value: unknown) => {
     const owner = verifySender(event);
