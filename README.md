@@ -2,9 +2,16 @@
 
 面向 Windows PC 的离线 ADV 框架。每款作品复用运行内核，独立提供 UI、剧情和本地素材，并生成自己的发布包。
 
-当前已完成第一阶段：Windows 桌面窗口、作品配置读取和本地视频播放。示例作品为“雾港”，附带一段 12 秒、约 1 MB 的原创无声演示视频。
+当前已完成阶段 1–3：桌面播放器、视频分支剧情闭环、两套独立 UI 与素材，以及按作品生成 Windows x64 便携包。
 
-设计与开发顺序以 [PC 框架设计基线](docs/adv-pc-framework-design.md) 为准。下一阶段是“视频 A → 选择 → 视频 B/C”的最小剧情闭环。
+设计与开发顺序以 [PC 框架设计基线](docs/adv-pc-framework-design.md) 为准。审查与验证记录见 [阶段 3 Review](docs/review-stage-3.md)。下一阶段是标题菜单、设置和节点检查点存档。
+
+| 作品 ID | 作品 | 独立界面 | 便携程序 |
+| --- | --- | --- | --- |
+| `demo` | 雾港 | 暗色影院、画面内双选项 | `release/FogHarbor-win32-x64/FogHarbor.exe` |
+| `afterglow` | 余光来信 | 明亮书信、左右双栏布局 | `release/AfterglowLetter-win32-x64/AfterglowLetter.exe` |
+
+每部作品都有三段不同的原创视频、两个结局和独立图标，共用同一剧情内核。演示片段均为 6 秒无声动画，用于验证框架；后续可直接替换成实拍内容。
 
 ## 启动
 
@@ -13,49 +20,90 @@
 ```powershell
 npm ci
 npm start
+npm start -- --game afterglow
 ```
 
-`npm start` 会先检查类型、构建，再启动桌面窗口。构建完成后，可以运行 `npm run start:built` 直接打开现有构建。
+所有作品命令默认选择 `demo`，使用 `--game <作品 ID>` 切换。`npm start` 会校验类型、剧情和素材并构建，再启动桌面窗口。构建完成后，可以运行 `npm run start:built -- --game afterglow` 直接打开现有构建。
 
-开发界面时使用 `npm run dev`。它启动本机开发服务和 Electron，修改 UI 可实时预览；修改桌面进程代码后需要重启该命令。正常运行使用 `npm start`，不需要开发服务。
+开发界面时使用 `npm run dev -- --game afterglow`。它启动本机开发服务和 Electron，修改 UI 可实时预览；修改剧情、素材或桌面进程代码后重启该命令。正常运行不需要开发服务。
 
-当前提供的是可运行的开发工程，尚未制作独立安装包；按作品生成发布包安排在阶段 3。
+## 独立打包
+
+```powershell
+npm run build -- --game demo
+npm run package -- --game demo
+npm run package:all
+```
+
+`build` 输出到 `dist/<作品 ID>/`；`package` 校验并重新构建指定作品，再生成 `release/<程序名>-win32-x64/`。`package:all` 为 `games/` 中的每部作品分别生成便携包。
+
+将完整便携文件夹交给玩家，双击其中的 EXE 即可离线运行，无需 Node.js、Python 或开发工程。不要只复制 EXE。当前为未签名的便携包，尚未制作安装向导；`release/` 和 `dist/` 不提交 Git。
+
+打包时仅带入目标作品编译后的 UI、剧情、素材及运行时，保留第三方许可证。每部作品的名称、EXE 图标和本地应用数据目录独立；存档功能仍属于阶段 4。构建失败会保留上一次成功产物。
 
 ## 已有功能
 
-- 从 `games/demo/game.json` 读取作品信息与入口视频 ID。
+- 从 `games/<ID>/game.json` 读取作品信息、入口节点和构建信息。
+- 从 `story.json` 执行 `video → choice → video → end`，支持不同结局与重新开始。
 - 从 `games/demo/assets.json` 解析本地视频，不把文件路径写入作品 UI。
 - 开始播放、暂停、继续、从头播放、拖动进度、音量及全屏。
 - `Space` 播放或暂停，`F` 切换全屏，`Esc` 退出全屏。按钮和输入框保留自身键盘操作。
 - 配置错误、文件缺失和视频损坏时显示错误及重试入口。
 - UI 更新时保留同一个视频元素与控制器。
+- 重复选择和旧播放回调不能推动新剧情；错误不会被当成正常完成。
+- 构建前校验重复 ID、跳转目标、素材存在性、不可达节点及无法到达结局的循环。
 
-本阶段不包含剧情分支、存档、立绘文字、QTE、调查和多端适配。
+本阶段不包含存档、条件变量、立绘文字、QTE、调查和多端适配。
 
 ## 替换素材
 
-将视频放入 `games/demo/media/`，然后修改 `games/demo/assets.json`：
+将视频放入 `games/demo/media/`，然后修改 `games/demo/assets.json` 中对应映射，例如只替换以下一项，保留其他剧情引用的素材：
+
+```json
+"opening_video": { "file": "media/my-opening.mp4" }
+```
+
+保留 `opening_video` 这个逻辑 ID，即可让同一剧情节点播放另一段视频。路径相对于作品目录，视频和图标必须放在 `media/` 内，不能使用绝对路径或符号链接。修改源素材或映射后重新构建、打包；不需要修改播放代码。
+
+支持配置 MP4 或 WebM 文件，实际能否播放取决于文件内的编码。示例 WebM 已经过 Electron 实测；自己的视频建议先用实际目标 PC 验证。示例本身无音轨，音量效果请用带声音的视频验证。
+
+## 剧情与新作品
+
+`game.json` 使用版本 2，`story.json` 和 `assets.json` 使用版本 1。旧版 `entryMediaId` 已替换为 `entryNodeId`。配置示例：
 
 ```json
 {
-  "schemaVersion": 1,
-  "videos": {
-    "opening_video": {
-      "file": "media/my-opening.mp4"
-    }
+  "schemaVersion": 2,
+  "id": "demo",
+  "title": "雾港",
+  "subtitle": "第一章 · 灯塔之外",
+  "description": "雾里传来一道灯光。",
+  "entryNodeId": "opening",
+  "build": {
+    "executableName": "FogHarbor",
+    "appId": "com.adv.fogharbor",
+    "icon": "media/icon.ico"
   }
 }
 ```
 
-保留 `opening_video` 这个逻辑 ID，即可让同一套 UI 播放另一段视频。路径相对于 `games/demo/`，不能使用机器绝对路径或指向作品目录外的文件。修改素材或映射后重启作品；不需要修改播放代码。
+`story.json` 的 `nodes` 包含三类节点：
 
-支持配置 MP4 或 WebM 文件，实际能否播放取决于文件内的编码。示例 WebM 已经过 Electron 实测；自己的视频建议先用实际目标 PC 验证。示例本身无音轨，音量效果请用带声音的视频验证。
+| 类型 | 必需字段 | 行为 |
+| --- | --- | --- |
+| `video` | `id`, `mediaId`, `next` | 成功播完后进入 `next` |
+| `choice` | `id`, `prompt`, `options` | 选项包含 `id`, `label`, `next`，可附 `description` |
+| `end` | `id`, `title`, `description` | 展示结局，允许重新开始 |
 
-修改作品名称、说明与入口视频 ID：`games/demo/game.json`。当前只加载 `demo` 作品；多作品构建选择安排在阶段 3。
+完整例子见两部作品的 `story.json`。玩家可拖动视频进度，播放到末尾后才推进；不会因为拖动或重播重复执行选项。当前不限制已看/未看片段的快进。
+
+创建新作品时复制 `games/demo/` 或 `games/afterglow/`，更改目录名、`game.id`、`build.executableName` 与 `build.appId` 为独立值，再替换 UI、剧情与素材。目录名使用小写字母、数字、连字符并以字母开头。然后执行 `npm run package -- --game 新ID`。
 
 ## 替换 UI
 
-作品专属界面位于 `games/demo/ui/index.tsx`，样式位于同目录 `styles.css`。它接收作品信息、播放状态、操作接口及视频宿主引用，负责呈现而不读取本地文件。
+作品专属界面位于 `games/<ID>/ui/index.tsx`，默认导出 React 组件，样式位于同目录。构建时 `@work-ui` 只选择目标作品。组件接收 `game`、`playback`、`actions`、`story`、`storyActions` 与 `videoHostRef`，负责呈现而不读取本地文件。
+
+选择时调用 `storyActions.choose(option.id, story.visitId)`；重开调用 `storyActions.restart()`。`visitId` 防止旧界面的重复输入，UI 不自行写剧情节点或分支目标。
 
 修改布局时保留视频宿主的挂载，避免打开菜单或切换 UI 状态时重建播放器。公共按钮示例在 `src/ui-base/Button.tsx`，可以复用，也可以在作品中替换。
 
@@ -63,15 +111,19 @@ npm start
 
 ```powershell
 npm run check
-npm run test:smoke
+npm run test:smoke -- --game demo
+npm run test:smoke -- --game afterglow
+npm run package:all
+npm run test:smoke -- --game demo --packaged
+npm run test:smoke -- --game afterglow --packaged
 ```
 
-`check` 执行类型检查和 14 项行为测试，覆盖配置、路径边界、视频分段读取、播放失败和过期异步结果等。
+`check` 执行类型检查和行为测试，覆盖剧情分支、无效图结构、重复输入、播放代次、过期异步结果、配置、路径边界、分段读取和构建输出恢复。
 
-`test:smoke` 构建并启动真实 Electron 窗口，检查离线播放、暂停、拖动、音量、结束、重播、全屏退出、窗口布局，以及换素材、缺失文件和损坏文件。异常素材只写入 `test-results/` 下的副本，不修改示例作品；截图也保存在该目录。该目录已被 Git 忽略。
+`test:smoke` 构建并启动真实 Electron，检查离线播放、两条分支、两个结局、重播/重开、重复点击、过期事件、全屏和最小窗口；异常素材只写入 `test-results/` 副本。`--built` 使用现有构建；`--packaged` 直接启动已经生成的作品 EXE。截图位于已被 Git 忽略的 `test-results/`。
 
 ## 演示素材
 
-`games/demo/media/opening.webm` 由本项目的 `tools/generate-demo.py` 生成，没有使用外部影视片段。视频已随工程保存，正常启动不需要 Python、FFmpeg 或 OpenCV。
+两部作品的动画和图标均由 `tools/generate-demo.py` 生成，没有使用外部影视片段。素材已随工程保存，正常启动不需要 Python、FFmpeg 或 OpenCV。
 
-如需重新生成这段演示动画，可以在另外准备好 NumPy 和 OpenCV 的 Python 环境中运行该脚本；它不是项目启动的必要步骤。
+如需重新生成素材，可以在另外准备好 NumPy、OpenCV 和 Pillow 的 Python 环境中运行该脚本；它不是项目启动的必要步骤。

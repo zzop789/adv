@@ -29,6 +29,7 @@ export class VideoController {
   private readonly listeners = new Set<Listener>();
   private disposed = false;
   private hasSource = false;
+  private loadVersion = 0;
   private requestVersion = 0;
 
   private readonly handlers: Record<string, EventListener> = {
@@ -55,7 +56,7 @@ export class VideoController {
       this.publish({ ...this.timing(), status: 'loading' });
     },
     pause: () => {
-      if (!this.canReceivePlaybackEvent()) return;
+      if (!this.canReceivePlaybackEvent() || !this.video.paused) return;
       // load() can queue a pause event from the previous source.
       if (this.snapshot.status === 'loading' && this.video.readyState === 0) return;
       this.publish({
@@ -91,6 +92,7 @@ export class VideoController {
 
   constructor(private readonly video: HTMLVideoElement) {
     this.snapshot = {
+      sourceId: 0,
       status: 'idle',
       currentTime: 0,
       duration: 0,
@@ -111,26 +113,31 @@ export class VideoController {
     return () => { this.listeners.delete(listener); };
   };
 
-  load(url: string): void {
+  load(url: string, sourceId = this.snapshot.sourceId + 1): void {
     if (this.disposed) return;
+    const loadVersion = ++this.loadVersion;
     this.requestVersion += 1;
     this.hasSource = false;
     this.video.pause();
-    this.publish({ status: 'loading', currentTime: 0, duration: 0, error: null });
+    if (!this.isCurrentLoad(loadVersion)) return;
+    this.publish({ sourceId, status: 'loading', currentTime: 0, duration: 0, error: null });
+    // Observers can synchronously restart or dispose while receiving loading.
+    if (!this.isCurrentLoad(loadVersion)) return;
 
     if (!url.trim()) {
       this.video.removeAttribute('src');
       this.video.load();
-      this.publish({ status: 'error', error: '请选择有效的视频文件。' });
+      if (this.isCurrentLoad(loadVersion)) this.publish({ status: 'error', error: '请选择有效的视频文件。' });
       return;
     }
 
     try {
       this.video.src = url;
+      if (!this.isCurrentLoad(loadVersion)) return;
       this.hasSource = true;
       this.video.load();
     } catch {
-      this.publish({ status: 'error', error: '视频加载失败，请重新选择文件。' });
+      if (this.isCurrentLoad(loadVersion)) this.publish({ status: 'error', error: '视频加载失败，请重新选择文件。' });
     }
   }
 
@@ -138,6 +145,8 @@ export class VideoController {
     if (this.disposed || !this.hasSource) return;
     const requestVersion = ++this.requestVersion;
     this.publish({ status: 'loading', error: null });
+    // A loading observer may cancel playback before the native play call starts.
+    if (!this.isCurrentRequest(requestVersion)) return;
 
     try {
       await this.video.play();
@@ -160,15 +169,19 @@ export class VideoController {
 
   pause(): void {
     if (this.disposed) return;
-    this.requestVersion += 1;
+    const requestVersion = ++this.requestVersion;
     this.video.pause();
+    if (!this.isCurrentRequest(requestVersion)) return;
     if (!this.canReceivePlaybackEvent()) return;
     this.publish({ ...this.timing(), status: this.video.ended ? 'ended' : 'paused' });
   }
 
   async replay(): Promise<void> {
     if (this.disposed || !this.hasSource) return;
+    const loadVersion = this.loadVersion;
+    const requestVersion = this.requestVersion;
     this.seek(0);
+    if (!this.isCurrentLoad(loadVersion) || !this.isCurrentRequest(requestVersion)) return;
     await this.play();
   }
 
@@ -177,8 +190,11 @@ export class VideoController {
     const duration = this.video.duration;
     // Until metadata is available there is no valid finite seek interval.
     if (!Number.isFinite(duration) || duration < 0) return;
+    const loadVersion = this.loadVersion;
+    const requestVersion = this.requestVersion;
     const target = Math.min(duration, Math.max(0, time));
     this.video.currentTime = target;
+    if (!this.isCurrentLoad(loadVersion) || !this.isCurrentRequest(requestVersion)) return;
     this.publish({
       ...this.timing(),
       ...(this.snapshot.status === 'ended' && target < duration ? { status: 'paused' as const } : {}),
@@ -207,6 +223,10 @@ export class VideoController {
 
   private isCurrentRequest(version: number): boolean {
     return !this.disposed && this.hasSource && this.requestVersion === version;
+  }
+
+  private isCurrentLoad(version: number): boolean {
+    return !this.disposed && this.loadVersion === version;
   }
 
   private canReceivePlaybackEvent(): boolean {

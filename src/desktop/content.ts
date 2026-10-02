@@ -1,16 +1,23 @@
 import { readFile, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
-import type { GameInfo } from '../runtime/types';
+import type { GameInfo, StoryDefinition, WorkBuildInfo } from '../runtime/types';
+import { storySchema, validateStory } from '../runtime/story-schema';
 
 const id = z.string().regex(/^[a-zA-Z0-9_-]+$/);
 const gameSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   id,
   title: z.string().min(1),
   subtitle: z.string(),
   description: z.string(),
-  entryMediaId: id,
+  entryNodeId: id,
+  build: z.object({
+    executableName: z.string().regex(/^[A-Za-z][A-Za-z0-9_-]{0,63}$/)
+      .refine((value) => !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(value)),
+    appId: z.string().regex(/^[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)+$/),
+    icon: z.string().min(1),
+  }),
 });
 const assetsSchema = z.object({
   schemaVersion: z.literal(1),
@@ -19,6 +26,8 @@ const assetsSchema = z.object({
 
 export interface GameContent {
   game: GameInfo;
+  build: WorkBuildInfo;
+  story: StoryDefinition;
   root: string;
   videos: ReadonlyMap<string, string>;
 }
@@ -43,7 +52,16 @@ export async function resolveContentFile(root: string, relativeFile: string): Pr
 }
 
 async function readJson(file: string): Promise<unknown> {
-  return JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, ''));
+  try {
+    return JSON.parse((await readFile(file, 'utf8')).replace(/^\uFEFF/, ''));
+  } catch (error) {
+    throw new Error(`${path.basename(file)} 无法读取，请检查文件是否存在且为有效 JSON。`, { cause: error });
+  }
+}
+
+function requireMediaDirectory(file: string): void {
+  const normalized = path.posix.normalize(file.replaceAll('\\', '/'));
+  if (!normalized.startsWith('media/')) throw new Error('视频和图标必须放在作品的 media/ 目录内，保证构建时完整复制。');
 }
 
 export async function loadGameContent(gameDirectory: string): Promise<GameContent> {
@@ -52,9 +70,12 @@ export async function loadGameContent(gameDirectory: string): Promise<GameConten
   if (!gameResult.success) throw new Error('game.json 配置不正确，请检查作品信息和 schemaVersion。');
   const assetsResult = assetsSchema.safeParse(await readJson(path.join(root, 'assets.json')));
   if (!assetsResult.success) throw new Error('assets.json 配置不正确，请检查素材映射和 schemaVersion。');
-  const { schemaVersion: _version, ...game } = gameResult.data;
+  const { schemaVersion: _version, build, ...game } = gameResult.data;
+  const storyResult = storySchema.safeParse(await readJson(path.join(root, 'story.json')));
+  if (!storyResult.success) throw new Error('story.json 格式不正确，请检查节点字段和 schemaVersion。');
   const videos = new Map<string, string>();
   for (const [mediaId, asset] of Object.entries(assetsResult.data.videos)) {
+    requireMediaDirectory(asset.file);
     if (!['.mp4', '.webm'].includes(path.extname(asset.file).toLowerCase())) {
       throw new Error(`素材 ${mediaId} 需要使用 MP4 或 WebM 文件。`);
     }
@@ -64,6 +85,13 @@ export async function loadGameContent(gameDirectory: string): Promise<GameConten
       throw new Error(`素材 ${mediaId} 无法读取，请检查文件是否存在且位于作品目录内。`, { cause: error });
     }
   }
-  if (!videos.has(game.entryMediaId)) throw new Error('入口视频 ID 不存在于 assets.json。');
-  return { game, root, videos };
+  validateStory(storyResult.data, game.entryNodeId, new Set(videos.keys()));
+  if (path.extname(build.icon).toLowerCase() !== '.ico') throw new Error('作品图标必须是 ICO 文件。');
+  requireMediaDirectory(build.icon);
+  try {
+    await resolveContentFile(root, build.icon);
+  } catch (error) {
+    throw new Error('作品图标无法读取，请检查 build.icon。', { cause: error });
+  }
+  return { game, build, story: storyResult.data, root, videos };
 }

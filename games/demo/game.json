@@ -1,8 +1,13 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "demo",
   "title": "雾港",
-  "subtitle": "序幕 · 光与海",
-  "description": "一段关于光、海与等待的短暂演出。",
-  "entryMediaId": "opening_video"
+  "subtitle": "第一章 · 灯塔之外",
+  "description": "雾里传来一道灯光。今晚，你会驶向哪里？",
+  "entryNodeId": "opening",
+  "build": {
+    "executableName": "FogHarbor",
+    "appId": "com.adv.fogharbor",
+    "icon": "media/icon.ico"
+  }
 }

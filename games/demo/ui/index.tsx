@@ -1,8 +1,10 @@
-import type { CSSProperties, RefObject } from 'react';
+import { useEffect, useRef, type CSSProperties, type RefObject } from 'react';
 import type {
   GameInfo,
   PlaybackActions,
   PlaybackSnapshot,
+  StoryActions,
+  StorySnapshot,
 } from '../../../src/runtime/types';
 import { Button } from '../../../src/ui-base/Button';
 import './styles.css';
@@ -12,6 +14,8 @@ interface DemoUIProps {
   playback: PlaybackSnapshot;
   actions: PlaybackActions;
   videoHostRef: RefObject<HTMLDivElement | null>;
+  story: StorySnapshot;
+  storyActions: StoryActions;
 }
 
 const statusLabels: Record<PlaybackSnapshot['status'], string> = {
@@ -39,17 +43,26 @@ export default function DemoUI({
   playback,
   actions,
   videoHostRef,
+  story,
+  storyActions,
 }: DemoUIProps) {
+  const storyHeading = useRef<HTMLHeadingElement>(null);
+  const { node } = story;
+  const isVideo = node.type === 'video';
   const { status, duration, currentTime, volume, muted } = playback;
   const isPlaying = status === 'playing' || status === 'loading';
   const unavailable = status === 'error' || status === 'idle';
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const visibleVolume = muted ? 0 : volume;
   const togglePlayback = () => {
+    if (!isVideo) return;
     if (isPlaying) actions.pause();
     else if (status === 'ended') actions.replay();
     else actions.play();
   };
+  useEffect(() => {
+    if (node.type !== 'video') storyHeading.current?.focus();
+  }, [story.visitId, node.type]);
 
   return (
     <main className="demo-shell">
@@ -74,7 +87,42 @@ export default function DemoUI({
           <div className="demo-screen" aria-label="影片画面">
             <div ref={videoHostRef} className="demo-video-host" />
 
-            {status !== 'playing' && (
+            {node.type === 'choice' && (
+              <div className="demo-overlay demo-overlay--story">
+                <div className="demo-story-panel">
+                  <span className="demo-overlay-kicker">每一个选择，都通向另一段故事</span>
+                  <h2 ref={storyHeading} tabIndex={-1} id="demo-choice-title">{node.prompt}</h2>
+                  <div className="demo-choices" role="group" aria-labelledby="demo-choice-title">
+                    {node.options.map((option, index) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className="demo-choice"
+                        aria-label={option.label}
+                        onClick={() => storyActions.choose(option.id, story.visitId)}
+                      >
+                        <span className="demo-choice-number" aria-hidden="true">0{index + 1}</span>
+                        <span className="demo-choice-copy"><strong>{option.label}</strong>{option.description && <span>{option.description}</span>}</span>
+                        <span className="demo-choice-arrow" aria-hidden="true">↗</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {node.type === 'end' && (
+              <div className="demo-overlay demo-overlay--story">
+                <div className="demo-overlay-content demo-ending">
+                  <span className="demo-overlay-kicker">故事落幕 · THE END</span>
+                  <h2 ref={storyHeading} tabIndex={-1}>{node.title}</h2>
+                  <p>{node.description}</p>
+                  <Button appearance="primary" onClick={storyActions.restart}>重新开始</Button>
+                </div>
+              </div>
+            )}
+
+            {isVideo && status !== 'playing' && (
               <div className={`demo-overlay demo-overlay--${status}`}>
                 <div className="demo-overlay-content">
                   {status === 'loading' || status === 'idle' ? (
@@ -109,7 +157,7 @@ export default function DemoUI({
           </div>
 
           <div className="demo-controls" aria-label="播放控制">
-            <div className="demo-timeline">
+            {isVideo && <div className="demo-timeline">
               <span className="demo-time">{formatTime(currentTime)}</span>
               <input
                 className="demo-range demo-seek"
@@ -125,10 +173,11 @@ export default function DemoUI({
                 aria-valuetext={`${formatTime(currentTime)}，总时长 ${formatTime(duration)}`}
               />
               <span className="demo-time demo-time--total">{formatTime(duration)}</span>
-            </div>
+            </div>}
 
             <div className="demo-controls-row">
               <div className="demo-controls-group">
+                {isVideo ? <>
                 <Button onClick={togglePlayback} disabled={unavailable}>
                   <span className={isPlaying ? 'demo-pause-icon' : 'demo-play-icon'} aria-hidden="true" />
                   {isPlaying ? '暂停' : status === 'ended' ? '重播' : '播放'}
@@ -137,6 +186,7 @@ export default function DemoUI({
                 <span className={`demo-playback-status demo-playback-status--${status}`}>
                   <span aria-hidden="true" />{statusLabels[status]}
                 </span>
+                </> : <span className="demo-story-status">{node.type === 'choice' ? '故事正在等待你的选择' : '每一条路，都值得再走一次'}</span>}
               </div>
 
               <div className="demo-controls-group demo-controls-group--right">
@@ -167,7 +217,7 @@ export default function DemoUI({
 
       <footer className="demo-footer">
         <span>让故事占据此刻</span>
-        <span className="demo-shortcuts"><kbd>Space</kbd> 播放 / 暂停 <span>·</span> <kbd>F</kbd> 全屏</span>
+        <span className="demo-shortcuts">{isVideo && <><kbd>Space</kbd> 播放 / 暂停 <span>·</span></>} <kbd>F</kbd> 全屏</span>
       </footer>
     </main>
   );

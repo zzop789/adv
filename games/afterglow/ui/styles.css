@@ -1,0 +1,113 @@
+.afterglow-shell { --afterglow-ink: #273e4c; --afterglow-red: #ac4d39; --afterglow-faint: #7a817c; --afterglow-paper: #f4f0e7; height: 100vh; min-height: 0; display: flex; flex-direction: column; padding: 0 4.5vw; color: var(--afterglow-ink); background: radial-gradient(ellipse at top left, #fffdf6 0, #f4f0e7 50%, #ebe8de 100%); color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; }
+.afterglow-header, .afterglow-title-row, .afterglow-layout, .afterglow-footer { width: 100%; max-width: 1440px; margin-left: auto; margin-right: auto; }
+.afterglow-header, .afterglow-title-row, .afterglow-footer { flex: 0 0 auto; }
+.afterglow-header { display: flex; justify-content: space-between; align-items: center; min-height: 83px; border-bottom: 1px solid #273e4c26; }
+.afterglow-imprint { display: flex; align-items: center; gap: 12px; font: 16px "SimSun", serif; letter-spacing: 3px; }
+.afterglow-stamp { display: grid; place-items: center; width: 31px; height: 37px; border: 1px solid #ac4d399c; outline: 1px solid #ac4d394d; outline-offset: -4px; color: var(--afterglow-red); font-size: 21px; }
+.afterglow-imprint-en { display: block; margin-top: 7px; font: 8px "Segoe UI", sans-serif; letter-spacing: 1.9px; color: #798076; }
+.afterglow-header-meta { display: flex; align-items: center; gap: 24px; font-size: 10px; letter-spacing: 1px; color: #737e78; }
+.afterglow-local { border: 1px solid #ac4d3950; padding: 6px 9px; color: #9b513f; }
+.afterglow-title-row { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: 29px 0 28px; }
+.afterglow-eyebrow { margin: 0 0 9px; font-size: 10px; letter-spacing: 3px; color: var(--afterglow-red); }
+.afterglow-title-row h1 { margin: 0; font: 37px "Noto Serif SC", "Songti SC", "SimSun", serif; letter-spacing: 5px; }
+.afterglow-description { margin: 0; max-width: 325px; font-size: 11px; line-height: 1.9; color: #71796f; }
+.afterglow-layout { display: grid; grid-template-columns: minmax(0, 1.56fr) minmax(280px, 1fr); align-items: stretch; gap: 36px; flex: 1; min-height: 0; }
+.afterglow-film { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.afterglow-film-topline { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 10px; letter-spacing: 2px; color: #748075; }
+.afterglow-screen { position: relative; flex: 1; min-height: 160px; background: #1e2c33; border: 5px solid #fffef9; box-shadow: 0 7px 18px #273e4c14; }
+.afterglow-video-host { position: absolute; inset: 0; }
+.afterglow-video-host video { width: 100%; height: 100%; display: block; object-fit: contain; background: #1e2c33; }
+.afterglow-screen-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(180deg, #1e2c3320, #142831b8); color: #fff6e4; padding: 18px; }
+.afterglow-screen-overlay--error, .afterglow-screen-overlay--idle, .afterglow-screen-overlay--loading { background: radial-gradient(ellipse at center, #52605c, #233b42); }
+.afterglow-screen-content { display: flex; align-items: center; flex-direction: column; gap: 17px; text-align: center; width: 100%; }
+.afterglow-screen-content h2 { margin: 0; font: 23px "SimSun", serif; letter-spacing: 2px; }
+.afterglow-screen-content > p { margin: 0; font-size: 12px; line-height: 1.7; }
+.afterglow-screen-eyebrow { font-size: 10px !important; letter-spacing: 3px; color: #f0e0c8; }
+.afterglow-media-error { max-width: 340px; color: #e5dfd2; overflow-wrap: anywhere; }
+.afterglow-loading-line { width: 45px; height: 1px; background: #fff4d9; animation: afterglow-breathe 1.8s ease-in-out infinite; }
+@keyframes afterglow-breathe { 50% { opacity: .3; transform: scaleX(.5); } }
+.afterglow-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 12px 21px; min-height: 40px; border: 1px solid #ac4d39; border-radius: 1px; color: #fff9ed; background: #ac4d39; font-size: 12px; letter-spacing: 2px; cursor: pointer; }
+.afterglow-button:hover { background: #963f2e; }
+.afterglow-button--light { background: #fbf6e9; color: #273e4c; border-color: #fbf6e9; }
+.afterglow-button--light:hover { background: #fffdf6; color: #ac4d39; }
+.afterglow-film-caption { position: absolute; inset: auto 0 0; padding: 30px 17px 15px; background: linear-gradient(transparent, #142831c7); color: #fffae9; font-size: 11px; letter-spacing: 2px; }
+.afterglow-time-row { display: flex; align-items: center; gap: 12px; padding-top: 16px; font-size: 10px; font-variant-numeric: tabular-nums; color: #5e6b66; }
+.afterglow-range { --afterglow-fill: 0%; appearance: none; -webkit-appearance: none; height: 16px; min-width: 0; margin: 0; background: transparent; cursor: pointer; }
+.afterglow-range::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(to right, #ac4d39 0 var(--afterglow-fill), #cccfc3 var(--afterglow-fill) 100%); }
+.afterglow-range::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 7px; height: 7px; margin-top: -2.5px; border-radius: 50%; background: #ac4d39; }
+.afterglow-range:disabled { cursor: default; opacity: .45; }
+.afterglow-range:disabled::-webkit-slider-thumb { opacity: 0; }
+.afterglow-seek { flex: 1; }
+.afterglow-film-buttons { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 11px; color: #a8ad9e; }
+.afterglow-text-button { border: 0; padding: 7px 0; background: transparent; color: #40554f; cursor: pointer; font: inherit; font-size: 11px; letter-spacing: .6px; }
+.afterglow-text-button:hover { color: #a44433; }
+.afterglow-text-button:disabled { opacity: .4; cursor: default; }
+.afterglow-film-status { margin-left: auto; color: #839081; font-size: 10px; letter-spacing: 1px; }
+.afterglow-film-note { min-height: 52px; margin: 12px 0 0; padding: 12px 0; color: #7a8176; font-size: 11px; letter-spacing: 1px; }
+.afterglow-film-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #273e4c1c; margin-top: 13px; padding-top: 14px; gap: 16px; }
+.afterglow-handwriting { font: 12px "SimSun", serif; letter-spacing: 1px; color: #8c8371; }
+.afterglow-letter { position: relative; display: flex; flex-direction: column; min-height: 0; padding: 27px 30px 26px; background: #fdfbf4; border: 1px solid #d6d5c7; box-shadow: 5px 5px 0 #e2e0d5; }
+.afterglow-letter::before { content: ''; position: absolute; top: -4px; right: 25px; width: 42px; height: 14px; background: #d8caaa66; transform: rotate(5deg); }
+.afterglow-letter-meta { display: flex; align-items: center; justify-content: space-between; min-height: 39px; font-size: 11px; letter-spacing: 2px; color: #788374; }
+.afterglow-letter-seal { width: 26px; padding: 4px 0; border: 1px solid #ae6c5366; color: #ae6c53; text-align: center; font: 11px/1.2 "SimSun", serif; transform: rotate(-5deg); }
+.afterglow-letter-body { padding-top: 20px; }
+.afterglow-letter-kicker { color: var(--afterglow-red); font-size: 9px !important; letter-spacing: 2px; margin: 0 0 12px !important; }
+.afterglow-letter-body h2 { font: 25px/1.65 "Noto Serif SC", "Songti SC", "SimSun", serif; letter-spacing: 2px; color: #304958; margin: 0 0 18px; }
+.afterglow-letter-body h2:focus { outline: none; }
+.afterglow-letter-body > p { margin: 12px 0; font-size: 12px; line-height: 2; color: #697569; }
+.afterglow-letter-rule { height: 1px; background: #dedfd3; margin: 20px 0 14px; width: 52px; }
+.afterglow-letter-footnote { color: #9b9d8b !important; font-size: 10px !important; line-height: 1.8 !important; }
+.afterglow-letter-signature { margin-top: auto; padding-top: 28px; text-align: right; color: #8d8f7c; font: 13px "SimSun", serif; letter-spacing: 3px; }
+.afterglow-choices { display: flex; flex-direction: column; gap: 12px; margin: 17px 0; }
+.afterglow-choice { display: flex; align-items: center; gap: 12px; padding: 15px 12px; width: 100%; background: #f5f3e9; border: 1px solid #d7d7c8; border-radius: 1px; color: #304958; text-align: left; cursor: pointer; }
+.afterglow-choice:hover { border-color: #ae6c53; background: #f0ebde; }
+.afterglow-choice-index { font: 15px Georgia, serif; color: #ac4d39; }
+.afterglow-choice-content { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.afterglow-choice-content strong { font-size: 13px; letter-spacing: 2px; font-weight: 500; }
+.afterglow-choice-content > span { font-size: 10px; color: #808977; line-height: 1.6; }
+.afterglow-choice-arrow { font-size: 18px; color: #a2785f; }
+.afterglow-end-mark { display: block; margin: 15px 0 24px; font: 12px/1.8 "SimSun", serif; color: #8d8876; }
+.afterglow-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 28px 0 22px; font-size: 10px; color: #919587; letter-spacing: 1px; }
+.afterglow-footer-tools { display: flex; align-items: center; gap: 24px; }
+.afterglow-volume { display: flex; align-items: center; gap: 10px; }
+.afterglow-volume .afterglow-range { width: 68px; }
+.afterglow-key-hint { font-size: 9px; letter-spacing: .7px; }
+.afterglow-shell button:focus-visible, .afterglow-shell input:focus-visible { outline: 2px solid #ac4d39; outline-offset: 4px; }
+
+@media (max-width: 1080px) {
+  .afterglow-shell { padding: 0 3.5vw; }
+  .afterglow-header { min-height: 68px; }
+  .afterglow-title-row { padding: 21px 0; }
+  .afterglow-title-row h1 { font-size: 31px; }
+  .afterglow-layout { gap: 24px; grid-template-columns: minmax(0, 1.4fr) minmax(270px, 1fr); }
+  .afterglow-letter { padding: 21px 23px 23px; }
+  .afterglow-letter-body { padding-top: 14px; }
+  .afterglow-letter-body h2 { font-size: 22px; margin-bottom: 13px; }
+  .afterglow-letter-body > p { font-size: 11px; }
+  .afterglow-letter-signature { padding-top: 19px; }
+  .afterglow-handwriting { font-size: 10px; letter-spacing: 0; }
+  .afterglow-footer { padding-top: 24px; }
+  .afterglow-footer-tools { gap: 15px; }
+}
+@media (max-height: 730px) {
+  .afterglow-header { min-height: 58px; }
+  .afterglow-title-row { padding: 15px 0 17px; }
+  .afterglow-title-row h1 { font-size: 29px; }
+  .afterglow-eyebrow { margin-bottom: 5px; }
+  .afterglow-description { max-width: 300px; }
+  .afterglow-letter { padding: 17px 22px 18px; }
+  .afterglow-letter-meta { min-height: 29px; }
+  .afterglow-letter-seal { padding: 2px 0; font-size: 9px; }
+  .afterglow-letter-body { padding-top: 12px; }
+  .afterglow-letter-body h2 { font-size: 21px; line-height: 1.5; margin-bottom: 12px; }
+  .afterglow-letter-body > p { margin: 9px 0; font-size: 11px; line-height: 1.8; }
+  .afterglow-letter-kicker { margin-bottom: 8px !important; }
+  .afterglow-choices { gap: 10px; margin: 13px 0; }
+  .afterglow-choice { padding: 12px 10px; }
+  .afterglow-letter-signature { padding-top: 13px; font-size: 11px; }
+  .afterglow-letter-rule { margin: 13px 0 10px; }
+  .afterglow-end-mark { margin: 12px 0 17px; }
+  .afterglow-footer { padding: 16px 0 15px; }
+  .afterglow-film-footer { margin-top: 10px; padding-top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .afterglow-loading-line { animation: none; } }

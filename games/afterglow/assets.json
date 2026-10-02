@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "videos": {
+    "letter_video": { "file": "media/letter.webm" },
+    "meet_video": { "file": "media/meet.webm" },
+    "reply_video": { "file": "media/reply.webm" }
+  }
+}

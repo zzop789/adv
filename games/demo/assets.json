@@ -3,6 +3,12 @@
   "videos": {
     "opening_video": {
       "file": "media/opening.webm"
+    },
+    "lighthouse_video": {
+      "file": "media/lighthouse.webm"
+    },
+    "shore_video": {
+      "file": "media/shore.webm"
     }
   }
 }

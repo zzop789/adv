@@ -42,6 +42,21 @@ button { -webkit-app-region: no-drag; }
 .demo-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; background: linear-gradient(180deg, #08090935, #08090990); }
 .demo-overlay--loading, .demo-overlay--idle, .demo-overlay--error { background: radial-gradient(ellipse at center, #252720 0%, #111310 58%, #080909 100%); }
 .demo-overlay--ready { background: linear-gradient(180deg, #08090940, #080909b5); }
+.demo-overlay--story { background: linear-gradient(180deg, #08090995, #080909ed); }
+.demo-story-panel { width: min(740px, 100%); }
+.demo-story-panel h2 { font-size: clamp(22px, 2.5vw, 32px); margin: 19px 0 26px; letter-spacing: 3px; }
+.demo-story-panel h2:focus, .demo-ending h2:focus { outline: none; }
+.demo-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; text-align: left; }
+.demo-choice { display: flex; align-items: center; gap: 16px; width: 100%; min-height: 90px; padding: 17px 20px; color: #eee9df; background: #262720bb; border: 1px solid #d5b7834a; border-radius: 3px; text-align: left; cursor: pointer; transition: background 140ms ease, border-color 140ms ease; }
+.demo-choice:hover { background: #494439c9; border-color: #d5b783; }
+.demo-choice:focus-visible { outline: 2px solid var(--demo-gold); outline-offset: 4px; }
+.demo-choice-number { font: 20px Georgia, serif; color: var(--demo-gold); }
+.demo-choice-copy { display: flex; flex-direction: column; gap: 7px; flex: 1; }
+.demo-choice-copy strong { font-size: 14px; font-weight: 500; letter-spacing: 2px; }
+.demo-choice-copy > span { font-size: 11px; line-height: 1.6; color: #a7a89b; }
+.demo-choice-arrow { font-size: 19px; color: var(--demo-gold); }
+.demo-ending p { color: #c3bdad; font-size: 13px; line-height: 1.9; margin: -10px 0 25px; }
+.demo-story-status { display: inline-flex; align-items: center; min-height: 34px; font-size: 12px; color: #b2ad9d; letter-spacing: 1px; }
 .demo-overlay-content { display: flex; flex-direction: column; align-items: center; max-width: 540px; }
 .demo-overlay-kicker { text-transform: uppercase; font-size: 11px; color: #d4c6ac; letter-spacing: 4px; }
 .demo-overlay h2 { font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif; font-size: clamp(25px, 3vw, 38px); font-weight: 400; letter-spacing: 5px; margin: 18px 0 28px; line-height: 1.4; }

@@ -107,6 +107,22 @@ test('switching source discards a previous asynchronous play rejection', async (
   controller.dispose();
 });
 
+test('queued pause and ended events from an old source cannot interrupt the new playing clip', async () => {
+  const { video, controller } = setup();
+  video.ready();
+  await controller.play();
+  controller.load('adv-media://asset/new', 12);
+  video.ready();
+  await controller.play();
+  const snapshot = controller.getSnapshot();
+  video.emit('pause');
+  video.emit('ended');
+  assert.equal(controller.getSnapshot(), snapshot);
+  assert.equal(snapshot.status, 'playing');
+  assert.equal(snapshot.sourceId, 12);
+  controller.dispose();
+});
+
 test('a decode error survives late lifecycle events and clears when another clip loads', () => {
   const { video, controller } = setup();
   video.ready();
@@ -264,4 +280,109 @@ test('dispose releases media and prevents all late events and pending results fr
   assert.equal(controller.getSnapshot(), lastSnapshot);
   assert.equal(notifications, 0);
   assert.equal(video.src, '');
+});
+
+test('a synchronous loading observer can replace the source without the outer load overwriting it', () => {
+  const { video, controller } = setup();
+  let replaced = false;
+  controller.subscribe(() => {
+    if (!replaced && controller.getSnapshot().status === 'loading') {
+      replaced = true;
+      controller.load('adv-media://asset/latest', 30);
+    }
+  });
+  controller.load('adv-media://asset/outdated', 20);
+  assert.equal(video.src, 'adv-media://asset/latest');
+  assert.equal(controller.getSnapshot().sourceId, 30);
+  controller.dispose();
+});
+
+test('a native load failure cannot replace the state of a source loaded reentrantly', () => {
+  const { video, controller } = setup();
+  const nativeLoad = video.load.bind(video);
+  let replaced = false;
+  video.load = () => {
+    if (!replaced) {
+      replaced = true;
+      controller.load('adv-media://asset/latest', 30);
+      throw new Error('outdated load failed');
+    }
+    nativeLoad();
+  };
+  controller.load('adv-media://asset/outdated', 20);
+  assert.equal(video.src, 'adv-media://asset/latest');
+  assert.equal(controller.getSnapshot().sourceId, 30);
+  assert.equal(controller.getSnapshot().status, 'loading');
+  assert.equal(controller.getSnapshot().error, null);
+  controller.dispose();
+});
+
+test('disposing from a loading observer cannot reload a disposed media element', () => {
+  const { video, controller } = setup();
+  controller.subscribe(() => { controller.dispose(); });
+  controller.load('adv-media://asset/outdated');
+  assert.equal(video.src, '');
+  assert.equal(video.paused, true);
+});
+
+test('a loading observer can cancel play before native playback starts', async () => {
+  const { video, controller } = setup();
+  video.ready();
+  let nativePlayCalls = 0;
+  video.playResult = async () => { nativePlayCalls += 1; };
+  let cancelled = false;
+  controller.subscribe(() => {
+    if (!cancelled && controller.getSnapshot().status === 'loading') {
+      cancelled = true;
+      controller.pause();
+    }
+  });
+  await controller.play();
+  assert.equal(nativePlayCalls, 0);
+  assert.equal(video.paused, true);
+  assert.equal(controller.getSnapshot().status, 'paused');
+  controller.dispose();
+});
+
+test('a synchronous pause observer can start a replacement scene without stale paused state', async () => {
+  const { video, controller } = setup();
+  video.ready();
+  await controller.play();
+  let replaced = false;
+  controller.subscribe(() => {
+    if (!replaced && controller.getSnapshot().status === 'paused') {
+      replaced = true;
+      controller.load('adv-media://asset/replacement');
+      video.ready();
+      void controller.play();
+    }
+  });
+  controller.pause();
+  // The replacement play promise has not settled yet, so stale paused must not overwrite loading.
+  assert.equal(controller.getSnapshot().status, 'loading');
+  assert.equal(video.paused, false);
+  await Promise.resolve();
+  assert.equal(controller.getSnapshot().status, 'playing');
+  controller.dispose();
+});
+
+test('replay does not start a replacement source loaded by a synchronous seek observer', async () => {
+  const { video, controller } = setup();
+  video.ready();
+  video.currentTime = 5;
+  video.emit('timeupdate');
+  let replaced = false;
+  let nativePlayCalls = 0;
+  video.playResult = async () => { nativePlayCalls += 1; };
+  controller.subscribe(() => {
+    if (!replaced && controller.getSnapshot().currentTime === 0) {
+      replaced = true;
+      controller.load('adv-media://asset/replacement');
+    }
+  });
+  await controller.replay();
+  assert.equal(video.src, 'adv-media://asset/replacement');
+  assert.equal(video.paused, true);
+  assert.equal(nativePlayCalls, 0);
+  controller.dispose();
 });

@@ -14,16 +14,16 @@ protocol.registerSchemesAsPrivileged([
 
 const hiddenTest = process.env.ADV_SMOKE_TEST === '1';
 const projectRoot = path.resolve(__dirname, '..');
-const gameDirectory = path.join(projectRoot, 'games', 'demo');
-const devUrl = process.env.ADV_DEV_SERVER_URL === 'http://127.0.0.1:5173'
+const devUrl = !app.isPackaged && __ADV_GAME_SOURCE__ !== null && process.env.ADV_DEV_SERVER_URL === 'http://127.0.0.1:5173'
   ? process.env.ADV_DEV_SERVER_URL : undefined;
+const gameDirectory = devUrl && __ADV_GAME_SOURCE__ ? __ADV_GAME_SOURCE__ : path.join(projectRoot, 'games', __ADV_GAME_ID__);
 const rendererUrl = devUrl ?? 'adv-app://app/index.html';
 let window: BrowserWindow | null = null;
 let content: GameContent | null = null;
 
-// This prototype owns one work. Future work selection is a build concern.
-app.setName('ADV 雾港演示');
-app.setPath('userData', path.join(app.getPath('appData'), hiddenTest ? 'adv-framework-smoke' : 'adv-framework-demo'));
+app.setName(__ADV_GAME_TITLE__);
+app.setPath('userData', path.join(app.getPath('appData'), `${__ADV_APP_ID__}${hiddenTest ? '.smoke' : ''}`));
+if (process.platform === 'win32') app.setAppUserModelId(__ADV_APP_ID__);
 
 function verifySender(event: IpcMainInvokeEvent): BrowserWindow {
   if (!window || event.sender !== window.webContents || event.senderFrame !== event.sender.mainFrame) {
@@ -42,7 +42,7 @@ async function createWindow() {
     minHeight: 680,
     show: false,
     backgroundColor: '#101213',
-    title: '雾港',
+    title: __ADV_GAME_TITLE__,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -78,10 +78,13 @@ void app.whenReady().then(async () => {
     const owner = verifySender(event);
     try {
       content = await loadGameContent(gameDirectory);
+      if (content.game.id !== __ADV_GAME_ID__) throw new Error('作品 ID 与构建目标不一致，请重新构建。');
       owner.setTitle(content.game.title);
+      owner.setIcon(await resolveContentFile(content.root, content.build.icon));
       return { ok: true, value: {
         game: content.game,
-        entryVideoUrl: `adv-media://asset/${content.game.entryMediaId}`,
+        story: content.story,
+        videoUrls: Object.fromEntries([...content.videos.keys()].map((id) => [id, `adv-media://asset/${id}`])),
       } };
     } catch (error) {
       content = null;

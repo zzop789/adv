@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 2,
+  "id": "afterglow",
+  "title": "余光来信",
+  "subtitle": "一封信 · 两种回答",
+  "description": "日落之前，信箱里多了一封没有署名的邀请。",
+  "entryNodeId": "letter",
+  "build": {
+    "executableName": "AfterglowLetter",
+    "appId": "com.adv.afterglowletter",
+    "icon": "media/icon.ico"
+  }
+}

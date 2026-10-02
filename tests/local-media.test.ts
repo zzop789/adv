@@ -27,7 +27,9 @@ test('serves real partial bytes for seeking and does not expose unmapped files',
   await writeFile(file, '0123456789');
   const content: GameContent = {
     root: directory,
-    game: { id: 'test', title: '', subtitle: '', description: '', entryMediaId: 'opening' },
+    game: { id: 'test', title: '', subtitle: '', description: '', entryNodeId: 'opening' },
+    build: { executableName: 'Test', appId: 'com.adv.test', icon: 'media/icon.ico' },
+    story: { schemaVersion: 1, nodes: [] },
     videos: new Map([['opening', file]]),
   };
   const partial = await serveLocalMedia(new Request('adv-media://asset/opening', { headers: { Range: 'bytes=2-5' } }), content);

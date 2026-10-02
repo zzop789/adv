@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    { "id": "opening", "type": "video", "mediaId": "opening_video", "next": "direction" },
+    {
+      "id": "direction", "type": "choice", "prompt": "雾中出现了一束灯光。你决定——",
+      "options": [
+        { "id": "follow_light", "label": "驶向灯光", "description": "循着那束光，去看看海的另一边。", "next": "lighthouse" },
+        { "id": "return_shore", "label": "返回岸边", "description": "还有一盏为你留在岸上的灯。", "next": "shore" }
+      ]
+    },
+    { "id": "lighthouse", "type": "video", "mediaId": "lighthouse_video", "next": "light_ending" },
+    { "id": "shore", "type": "video", "mediaId": "shore_video", "next": "home_ending" },
+    { "id": "light_ending", "type": "end", "title": "灯塔之外", "description": "雾慢慢散去，你看见一条从未走过的航线。" },
+    { "id": "home_ending", "type": "end", "title": "岸上的灯", "description": "你循着熟悉的光回到岸边。有人一直在等你。" }
+  ]
+}

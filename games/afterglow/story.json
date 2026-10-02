@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    { "id": "letter", "type": "video", "mediaId": "letter_video", "next": "answer" },
+    {
+      "id": "answer", "type": "choice", "prompt": "信里约你在日落前见面。你的回答是——",
+      "options": [
+        { "id": "meet", "label": "赴约", "description": "带着信，去那间熟悉的咖啡馆。", "next": "meeting" },
+        { "id": "reply", "label": "留下回信", "description": "把没说完的话，留在一张新的信纸上。", "next": "writing" }
+      ]
+    },
+    { "id": "meeting", "type": "video", "mediaId": "meet_video", "next": "meeting_ending" },
+    { "id": "writing", "type": "video", "mediaId": "reply_video", "next": "letter_ending" },
+    { "id": "meeting_ending", "type": "end", "title": "黄昏的座位", "description": "推开门时，对面的椅子正好空着。故事有了下一句话。" },
+    { "id": "letter_ending", "type": "end", "title": "寄往明天", "description": "你写下自己的答案，把它交给下一次日出。" }
+  ]
+}
