@@ -1,0 +1,11 @@
+:root { color-scheme: dark; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #101213; color: #eee9df; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid #d6b67b; outline-offset: 5px; }
+.adv-shell-state { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 48px; text-align: center; }
+.adv-shell-eyebrow { letter-spacing: .25em; font-size: 12px; color: #c9ad7c; }
+.adv-shell-state h1 { font-size: 28px; font-weight: 500; margin-top: 24px; }
+.adv-shell-state p { color: #b8b5ad; max-width: 600px; line-height: 1.8; }
+.adv-shell-state button { color: #101213; background: #d6b67b; padding: 12px 26px; border: 0; border-radius: 4px; margin-top: 20px; }

@@ -4,6 +4,10 @@ node_modules/
 /dist-electron/
 /release/
 /coverage/
+/test-results/
+
+# Python helper cache
+__pycache__/
 
 # Local configuration and logs
 .env
