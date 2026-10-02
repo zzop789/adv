@@ -1,0 +1,5 @@
+.adv-settings-screen { width: min(430px, calc(100vw - 48px)); }
+.adv-settings-volume { display: grid; grid-template-columns: auto minmax(120px, 1fr) 4ch; align-items: center; gap: 18px; margin: 12px 0 24px; }
+.adv-settings-volume output { font-variant-numeric: tabular-nums; font-size: 13px; }
+.adv-settings-volume .ui-slider { width: 100%; }
+.adv-settings-note { margin: 24px 0 0; font-size: 12px; opacity: .7; line-height: 1.7; }

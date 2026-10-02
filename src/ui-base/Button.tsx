@@ -1,11 +1,11 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   appearance?: 'primary' | 'quiet';
 };
 
-/** Optional shared UI primitive. A work can supply its own components. */
+/** Shared interaction primitive; each work can override its visual theme. */
 export function Button({
   children,
   appearance = 'quiet',
@@ -17,7 +17,7 @@ export function Button({
     <button
       {...props}
       type={type}
-      className={`adv-button adv-button--${appearance} ${className}`.trim()}
+      className={`ui-button ui-button--${appearance} adv-button adv-button--${appearance} ${className}`.trim()}
     >
       {children}
     </button>

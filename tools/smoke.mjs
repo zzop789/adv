@@ -61,7 +61,10 @@ async function completeClip(page) {
 async function layout(page, name) {
   // Native capture explicitly wakes a hidden Electron window, even at a held final frame.
   const png = await instance.app.evaluate(async ({ BrowserWindow }) => {
-    const image = await BrowserWindow.getAllWindows()[0].capturePage(undefined, { stayHidden: true, stayAwake: true });
+    const window = BrowserWindow.getAllWindows()[0];
+    // The OS window stays hidden; making the page a capture target wakes its compositor.
+    await window.capturePage(undefined, { stayAwake: true });
+    const image = await window.capturePage(undefined, { stayAwake: true });
     return image.toPNG().toString('base64');
   });
   await writeFile(path.join(output, `${gameId}-${name}${packaged ? '-packaged' : ''}.png`), Buffer.from(png, 'base64'));
@@ -85,8 +88,28 @@ try {
   assert.equal(host.preferences.nodeIntegration, false);
   if (packaged) assert.equal(host.packaged, true);
   await app.context().setOffline(true);
+  await page.locator('video').evaluate((v) => { v.dataset.smokeIdentity = 'persistent'; });
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.getByRole('dialog', { name: '播放设置' }).waitFor();
+  await page.getByRole('slider', { name: '设置音量', exact: true }).fill('0.55');
+  assert.ok(Math.abs(await page.locator('video').evaluate((v) => v.volume) - 0.55) < 0.01);
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
+  assert.equal(await page.locator('video').evaluate((v) => v.paused), true, 'Closing settings must not start an unplayed clip');
+  assert.equal(await page.evaluate(() => document.activeElement?.textContent?.trim()), '设置');
   await page.getByRole('button', { name: '开始播放', exact: true }).click();
   await page.waitForFunction(() => document.querySelector('video').currentTime > 0.5);
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.getByRole('dialog', { name: '播放设置' }).waitFor();
+  assert.equal(await page.locator('video').evaluate((v) => v.paused), true);
+  const modalTime = await page.locator('video').evaluate((v) => v.currentTime);
+  await page.waitForTimeout(180);
+  assert.ok(Math.abs(await page.locator('video').evaluate((v) => v.currentTime) - modalTime) < 0.05);
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => Boolean(document.activeElement?.closest('dialog'))), true);
+  await layout(page, 'settings');
+  await page.getByRole('button', { name: '关闭设置', exact: true }).click();
+  await page.waitForFunction((time) => !document.querySelector('video').paused && document.querySelector('video').currentTime > time, modalTime);
   await page.getByRole('button', { name: '暂停', exact: true }).click();
   assert.equal(await page.locator('video').evaluate((v) => v.paused), true);
   const pausedTime = await page.locator('video').evaluate((v) => v.currentTime);
@@ -129,9 +152,14 @@ try {
   await page.getByRole('heading', { name: nodes.get(secondBranch.next).title, exact: true }).waitFor();
   await page.getByRole('button', { name: '切换全屏', exact: true }).click();
   await page.waitForFunction(async () => await window.adv.getFullscreen());
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.getByRole('dialog', { name: '播放设置' }).waitFor();
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => window.adv.getFullscreen()), true, 'Escape closes a dialog before exiting fullscreen');
   await page.keyboard.press('Escape');
   await page.waitForFunction(async () => !(await window.adv.getFullscreen()));
-  console.log(`PASS ${gameId}: ${packaged ? 'standalone EXE' : 'built app'}, offline playback, both branches/endings, replay/restart, persistent video, rapid clicks, stale events, fullscreen and minimum window`);
+  console.log(`PASS ${gameId}: ${packaged ? 'standalone EXE' : 'built app'}, offline playback, both branches/endings, independent settings screen, modal pause/resume and focus, persistent video, rapid clicks, stale events, fullscreen and minimum window`);
   await app.close(); instance = null;
 
   if (!packaged) {

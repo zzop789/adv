@@ -1,0 +1,54 @@
+/* Zero-specificity defaults let work themes own their presentation. */
+:where(.ui-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 2.6rem;
+  padding: .65rem 1rem;
+  border: 1px solid var(--ui-border, #767b86);
+  border-radius: var(--ui-radius, .5rem);
+  background: var(--ui-surface, #222630);
+  color: var(--ui-text, #f4f5f7);
+  font: inherit;
+  cursor: pointer;
+}
+:where(.ui-button--primary) {
+  background: var(--ui-accent, #cedaff);
+  border-color: var(--ui-accent, #cedaff);
+  color: var(--ui-accent-text, #161c2b);
+}
+:where(.ui-button:hover:not(:disabled)) { filter: brightness(1.08); }
+:where(.ui-button:disabled, .ui-slider:disabled) { cursor: not-allowed; opacity: .45; }
+:where(.ui-button:focus-visible, .ui-slider:focus-visible) {
+  outline: 2px solid var(--ui-focus, #9ebaff);
+  outline-offset: 3px;
+}
+:where(.ui-slider) {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--ui-accent, #9ebaff);
+  cursor: pointer;
+}
+:where(.ui-choice-list) { display: grid; gap: .75rem; }
+:where(.ui-choice) { display: grid; justify-content: stretch; gap: .3rem; text-align: left; }
+:where(.ui-choice__label) { font-weight: 600; }
+:where(.ui-choice__description) { color: var(--ui-muted, #aeb5c3); font-size: .9em; }
+:where(.ui-dialog) {
+  box-sizing: border-box;
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 3rem);
+  margin: auto;
+  padding: 1.5rem;
+  overflow: auto;
+  border: 1px solid var(--ui-border, #767b86);
+  border-radius: var(--ui-radius, .75rem);
+  background: var(--ui-surface, #222630);
+  color: var(--ui-text, #f4f5f7);
+  box-shadow: 0 1rem 4rem #0006;
+}
+:where(.ui-dialog)::backdrop { background: var(--ui-backdrop, #0009); }
+:where(.ui-dialog__header) { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+:where(.ui-dialog__title) { margin: 0; font-size: 1.35rem; }
+:where(.ui-dialog__content) { margin-top: 1.25rem; }
+:where(.ui-time) { font-variant-numeric: tabular-nums; }

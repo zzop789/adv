@@ -1,5 +1,6 @@
 .afterglow-shell { --afterglow-ink: #273e4c; --afterglow-red: #ac4d39; --afterglow-faint: #7a817c; --afterglow-paper: #f4f0e7; height: 100vh; min-height: 0; display: flex; flex-direction: column; padding: 0 4.5vw; color: var(--afterglow-ink); background: radial-gradient(ellipse at top left, #fffdf6 0, #f4f0e7 50%, #ebe8de 100%); color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; }
 .afterglow-header, .afterglow-title-row, .afterglow-layout, .afterglow-footer { width: 100%; max-width: 1440px; margin-left: auto; margin-right: auto; }
+.afterglow-shell { --ui-surface: #fdfbf4; --ui-text: #273e4c; --ui-border: #d0c9b8; --ui-accent: #ac4d39; --ui-accent-text: #fff9ed; --ui-muted: #697569; --ui-focus: #ac4d39; --ui-radius: 2px; --ui-backdrop: #23333b66; }
 .afterglow-header, .afterglow-title-row, .afterglow-footer { flex: 0 0 auto; }
 .afterglow-header { display: flex; justify-content: space-between; align-items: center; min-height: 83px; border-bottom: 1px solid #273e4c26; }
 .afterglow-imprint { display: flex; align-items: center; gap: 12px; font: 16px "SimSun", serif; letter-spacing: 3px; }
@@ -39,7 +40,7 @@
 .afterglow-range:disabled::-webkit-slider-thumb { opacity: 0; }
 .afterglow-seek { flex: 1; }
 .afterglow-film-buttons { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 11px; color: #a8ad9e; }
-.afterglow-text-button { border: 0; padding: 7px 0; background: transparent; color: #40554f; cursor: pointer; font: inherit; font-size: 11px; letter-spacing: .6px; }
+.afterglow-text-button { border: 0; border-radius: 0; min-height: 0; padding: 7px 0; background: transparent; color: #40554f; cursor: pointer; font: inherit; font-size: 11px; letter-spacing: .6px; }
 .afterglow-text-button:hover { color: #a44433; }
 .afterglow-text-button:disabled { opacity: .4; cursor: default; }
 .afterglow-film-status { margin-left: auto; color: #839081; font-size: 10px; letter-spacing: 1px; }

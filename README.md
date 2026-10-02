@@ -4,7 +4,9 @@
 
 当前已完成阶段 1–3：桌面播放器、视频分支剧情闭环、两套独立 UI 与素材，以及按作品生成 Windows x64 便携包。
 
-设计与开发顺序以 [PC 框架设计基线](docs/adv-pc-framework-design.md) 为准。审查与验证记录见 [阶段 3 Review](docs/review-stage-3.md)。下一阶段是标题菜单、设置和节点检查点存档。
+设计与开发顺序以 [PC 框架设计基线](docs/adv-pc-framework-design.md) 为准。阶段 3 首次交付的审查与验证记录见 [阶段 3 Review](docs/review-stage-3.md)。下一阶段是标题菜单、设置持久化和节点检查点存档。
+
+UI 已拆分为通用控件、独立界面、作品布局和代码调用管理器，详见 [UI 架构与调用示例](docs/ui-architecture.md)。现有设置弹窗复用音量与全屏功能，尚未加入设置持久化。
 
 | 作品 ID | 作品 | 独立界面 | 便携程序 |
 | --- | --- | --- | --- |
@@ -101,11 +103,11 @@ npm run package:all
 
 ## 替换 UI
 
-作品专属界面位于 `games/<ID>/ui/index.tsx`，默认导出 React 组件，样式位于同目录。构建时 `@work-ui` 只选择目标作品。组件接收 `game`、`playback`、`actions`、`story`、`storyActions` 与 `videoHostRef`，负责呈现而不读取本地文件。
+`games/<ID>/ui/index.tsx` 默认导出 `{ Layout, screens }` 注册表。构建时 `@work-ui` 只选择目标作品。原先一个大组件已拆为 `Layout.tsx` 和 `screens/PlaybackScreen.tsx`、`ChoiceScreen.tsx`、`EndingScreen.tsx`；设置默认使用共享 SettingsScreen，也允许作品替换。
 
-选择时调用 `storyActions.choose(option.id, story.visitId)`；重开调用 `storyActions.restart()`。`visitId` 防止旧界面的重复输入，UI 不自行写剧情节点或分支目标。
+界面只接收数据与 `onChoose`、`onRestart` 等回调，可以直接作为 React 组件单独使用，也可通过 `ui.open(name, props)`、`ui.show(name, props)`、`ui.close(name)` 调用。剧情访问代次与播放规则由 `src/ui/player-ui.ts` 绑定，界面不自行写剧情节点或分支目标。
 
-修改布局时保留视频宿主的挂载，避免打开菜单或切换 UI 状态时重建播放器。公共按钮示例在 `src/ui-base/Button.tsx`，可以复用，也可以在作品中替换。
+修改 Layout 时保留视频宿主与播放、剧情、弹窗三个插槽。公共控件统一从 `src/ui-base` 导入：Button、Slider、ChoiceList、Dialog、TimeLabel。主题通过 `--ui-*` CSS 变量和作品类名定制。打开设置会暂停当前播放，关闭后按原状态恢复，视频元素不重建。
 
 ## 验证
 
@@ -118,9 +120,9 @@ npm run test:smoke -- --game demo --packaged
 npm run test:smoke -- --game afterglow --packaged
 ```
 
-`check` 执行类型检查和行为测试，覆盖剧情分支、无效图结构、重复输入、播放代次、过期异步结果、配置、路径边界、分段读取和构建输出恢复。
+`check` 执行类型检查和行为测试，覆盖剧情分支、播放代次、过期异步结果、配置、路径边界、构建输出恢复，以及通用控件、界面实例和弹窗协调。
 
-`test:smoke` 构建并启动真实 Electron，检查离线播放、两条分支、两个结局、重播/重开、重复点击、过期事件、全屏和最小窗口；异常素材只写入 `test-results/` 副本。`--built` 使用现有构建；`--packaged` 直接启动已经生成的作品 EXE。截图位于已被 Git 忽略的 `test-results/`。
+`test:smoke` 构建并启动真实 Electron，检查离线播放、两条分支、两个结局、重播/重开、重复点击、过期事件、设置弹窗、焦点、暂停恢复、全屏和最小窗口；异常素材只写入 `test-results/` 副本。`--built` 使用现有构建；`--packaged` 直接启动已经生成的作品 EXE。截图位于已被 Git 忽略的 `test-results/`。
 
 ## 演示素材
 
