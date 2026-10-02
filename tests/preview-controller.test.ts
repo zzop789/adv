@@ -102,3 +102,55 @@ test('a failed initial load can be retried successfully', async () => {
   assert.equal(preview.getSnapshot().content?.loadId, 'fixed');
   preview.dispose();
 });
+
+test('dynamic apply failure releases the candidate and retains the live content', async () => {
+  const released: string[] = [];
+  let sequence = 0;
+  const preview = new PreviewController({ loadGame: async () => ({ ok: true, value: content(String(++sequence)) }), releaseGame: async (id) => { released.push(id); } });
+  await preview.load(); preview.mount('1');
+  preview.setInstaller(() => ({ ok: false, error: 'Current media changed' }));
+  assert.equal(await preview.load({ strategy: 'preserve' }), false);
+  assert.equal(preview.getSnapshot().content?.loadId, '1');
+  assert.equal(preview.getSnapshot().error, 'Current media changed');
+  assert.deepEqual(released, ['2']);
+  preview.dispose(); preview.unmount('1');
+});
+
+test('an installer that synchronously disposes the owner cannot publish released content', async () => {
+  const released: string[] = [];
+  const preview = new PreviewController({
+    loadGame: async () => ({ ok: true, value: content('candidate') }),
+    releaseGame: async (id) => { released.push(id); },
+  });
+  preview.setInstaller(() => {
+    preview.dispose();
+    return { ok: true };
+  });
+  assert.equal(await preview.load(), false);
+  assert.equal(preview.getSnapshot().content, null);
+  assert.deepEqual(released, ['candidate']);
+});
+
+test('throwing state observers cannot roll back a commit or leave preview loading locked', async () => {
+  let sequence = 0;
+  const errors: unknown[][] = [];
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => { errors.push(args); };
+  const preview = new PreviewController({
+    loadGame: async () => ({ ok: true, value: content(String(++sequence)) }),
+    releaseGame: async () => {},
+  });
+  preview.subscribe(() => { throw new Error('Bad observer'); });
+  try {
+    assert.equal(await preview.load(), true);
+    assert.equal(preview.getSnapshot().content?.loadId, '1');
+    assert.equal(await preview.load(), true);
+    assert.equal(preview.getSnapshot().content?.loadId, '2');
+    assert.equal(preview.getSnapshot().loading, false);
+    assert.equal(preview.getSnapshot().error, null);
+    assert.equal(errors.length, 4);
+  } finally {
+    preview.dispose();
+    console.error = originalError;
+  }
+});

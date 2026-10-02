@@ -100,7 +100,7 @@ try {
   await reloadButton().waitFor();
   await page.waitForTimeout(200);
   const second = await videoState();
-  assert.equal(second.identity, undefined, 'Successful reload creates a fresh Player');
+  assert.equal(second.identity, 'original', 'Content replacement must keep the same Player video element');
   assert.equal(second.paused, true, 'Reload waits for manual playback at the entry');
   assert.equal(second.time, 0);
   assert.equal(new Set([...mediaRequests].filter((url) => url.endsWith('/' + opening.mediaId))).size, 1, 'Rapid repeated clicks must produce only one loaded version');
@@ -144,10 +144,22 @@ try {
   assert.equal(third.time, 0);
   assert.equal(await page.getByRole('alert').count(), 0);
   await assertFile(third.src, shoreFile);
+  await page.getByRole('slider', { name: '播放进度', exact: true }).fill('2');
+  choice.prompt = '保留进度后的新分支';
+  await writeFile(storyPath, JSON.stringify(story));
+  await page.getByRole('combobox', { name: '动态更新策略' }).selectOption('preserve');
+  await page.getByRole('button', { name: '应用文件更新', exact: true }).click();
+  await page.waitForTimeout(250);
+  assert.equal((await videoState()).src, third.src);
+  assert.ok(Math.abs((await videoState()).time - 2) < .1);
+  await assertFile(third.src, shoreFile);
   await finishClip();
   await page.getByRole('heading', { name: choice.prompt, exact: true }).waitFor();
+  await page.getByRole('button', { name: choice.options[0].label, exact: true }).click();
+  await ready();
+  assert.equal((await remote(third.src)).status, 404, 'Preserved video lease releases only after the source changes');
   assert.deepEqual(failures, []);
-  console.log('PASS preview: explicit reload, updated story and media, fresh entry/manual start, serial rapid clicks, retired-version release, malformed JSON preserves Player/video/mapping, repair and retry.');
+  console.log('PASS preview: same-session restart, updated content, serial clicks, failed-update rollback, preserve progress/lease and source-change release.');
   console.log(`Fixture kept for inspection: ${fixture}`);
 } finally {
   if (app) await app.close();

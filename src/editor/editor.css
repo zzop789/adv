@@ -1,0 +1,55 @@
+.editor-dialog { position: fixed; inset: 12px; width: calc(100vw - 24px); max-width: none; height: calc(100vh - 24px); max-height: none; margin: 0; padding: 0; border: 1px solid #496073; border-radius: 9px; background: #111b25; color: #dce6ef; font: 12px/1.55 "Segoe UI","Microsoft YaHei",sans-serif; color-scheme: dark; overflow: hidden; }
+.editor-dialog[open] { display: flex; flex-direction: column; }
+.editor-dialog::backdrop { background: #061019d9; }
+.editor-dialog * { box-sizing: border-box; }
+.editor-dialog button,.editor-dialog input,.editor-dialog textarea,.editor-dialog select { font: inherit; }
+.editor-dialog button { padding: 7px 10px; border: 1px solid #41576b; border-radius: 4px; background: #243746; color: #e0eaf3; cursor: pointer; }
+.editor-dialog button:hover:not(:disabled) { background: #34516a; }
+.editor-dialog button:disabled { opacity: .4; cursor: default; }
+.editor-dialog input,.editor-dialog textarea,.editor-dialog select { min-width: 0; border: 1px solid #425465; border-radius: 4px; padding: 7px; background: #142532; color: #edf3f8; }
+.editor-dialog button:focus-visible,.editor-dialog input:focus-visible,.editor-dialog select:focus-visible,.editor-dialog textarea:focus-visible { outline: 2px solid #98cbff; outline-offset: 2px; }
+.editor-header { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #2d4051; }
+.editor-header span { font-size: 9px; letter-spacing: 2px; color: #8aa8bf; }
+.editor-header h1 { margin: 2px 0 0; font-size: 20px; font-weight: 500; }
+.editor-header h1 small { margin-left: 13px; font-size: 12px; color: #93a7b9; }
+.editor-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 15px; background: #182733; }
+.editor-toolbar select { margin-left: auto; }
+.editor-hint { color: #8fa1b0; font-size: 11px; }
+.editor-dirty { color: #eac07d; }
+.editor-status { padding: 7px 16px; min-height: 33px; font-size: 11px; color: #a8c7df; display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid #2d4051; }
+.editor-status[role=alert] { color: #ffc4ae; }
+.editor-status span { color: #839bae; white-space: nowrap; }
+.editor-workspace { display: grid; grid-template-columns: 125px minmax(260px,1fr) 285px; padding: 0; border: 0; margin: 0; min-width: 0; min-height: 0; flex: 1; }
+.editor-add { padding: 14px 11px; border-right: 1px solid #2d4051; display: flex; flex-direction: column; gap: 9px; }
+.editor-add h2 { font-size: 12px; margin: 0 0 6px; }
+.editor-add p,.editor-add small { color: #8da0b0; font-size: 10px; }
+.editor-inspector { min-width: 0; overflow: auto; padding: 17px; background: #172531; border-left: 1px solid #2d4051; }
+.editor-inspector h2 { font-size: 16px; margin: 0 0 6px; overflow-wrap: anywhere; }
+.editor-inspector h2 small { font-size: 10px; color: #e0c18b; }
+.editor-field { display: flex; flex-direction: column; gap: 5px; margin: 12px 0; color: #a9bdce; }
+.editor-field textarea { min-height: 75px; resize: vertical; }
+.editor-option { margin: 14px 0; padding: 8px 10px; border: 1px solid #3a5265; border-radius: 5px; }
+.editor-option legend { color: #b6cde0; }
+.editor-option .editor-field { margin: 8px 0; }
+.editor-inspector hr { border: 0; border-top: 1px solid #3b4e5d; margin: 22px 0 15px; }
+.editor-inspector-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.editor-dialog .editor-danger { color: #efb4a1; }
+.editor-confirm { padding: 12px 18px; background: #4d3926; color: #ffdfad; border-bottom: 1px solid #8b673a; }
+.editor-confirm p { margin: 0 0 9px; }
+.editor-confirm button { margin-right: 8px; }
+.editor-graph-area { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #0d1822; }
+.editor-graph-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; flex: none; border-bottom: 1px solid #283c4d; font-size: 10px; }
+.editor-graph-toolbar > span:first-child { flex: 1; color: #819caf; }
+.editor-graph-toolbar button { padding: 2px 8px; }
+.editor-graph-scroll { flex: 1; overflow: auto; min-height: 0; background-image: radial-gradient(#36506370 .8px,transparent .8px); background-size: 18px 18px; }
+.editor-graph-canvas { position: relative; transform-origin: top left; }
+.editor-edges { position: absolute; inset: 0; pointer-events: none; }
+.editor-dialog .editor-node { position: absolute; width: 225px; min-height: 106px; padding: 12px 15px; text-align: left; display: flex; flex-direction: column; gap: 5px; border: 1px solid #496477; border-top: 3px solid #79accf; background: #1b3040; box-shadow: 0 5px 13px #0003; touch-action: none; user-select: none; }
+.editor-dialog .editor-node--choice { border-top-color: #c3a2e2; background: #302d44; }
+.editor-dialog .editor-node--end { border-top-color: #d6b879; background: #35382e; }
+.editor-dialog .editor-node.is-selected { outline: 2px solid #b5d8fa; outline-offset: 3px; }
+.editor-node-type { font-size: 9px; color: #afc4d4; }
+.editor-node strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.editor-node-copy { font-size: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b8c9d7; }
+.editor-node small { color: #99b4c8; font-size: 9px; }
+@media(max-width:1050px) { .editor-workspace { grid-template-columns: 103px minmax(230px,1fr) 260px; } .editor-toolbar { gap: 5px; padding: 8px; } .editor-toolbar button { padding: 5px 7px; } .editor-status { flex-direction: column; gap: 1px; } }

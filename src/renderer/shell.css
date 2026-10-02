@@ -17,3 +17,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid #d6b67b; outline-
 .adv-preview-tools button:disabled { opacity: .55; cursor: default; }
 .adv-preview-tools button:focus-visible { outline: 2px solid #bad9f1; outline-offset: 3px; }
 .adv-preview-error { margin: 7px 0 0; max-height: 6.5em; overflow: auto; color: #ffcbba; overflow-wrap: anywhere; }
+.adv-preview-tools-row { flex-wrap: wrap; }
+.adv-preview-tools select { padding: 4px; background: #203442; color: #e3eaf0; border: 1px solid #7791a9; border-radius: 3px; font-size: 11px; }
+.adv-story-effect-host { display: contents; }
+.adv-editor-loading { position: fixed; inset: 0; display: grid; place-items: center; z-index: 2000; background: #121e28; color: #e0eaf3; }

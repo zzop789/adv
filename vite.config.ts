@@ -15,6 +15,10 @@ export default defineConfig({
     apply: 'serve',
     transformIndexHtml: (html) => html.replace("script-src 'self';", "script-src 'self' 'unsafe-inline';"),
   }],
-  server: { host: '127.0.0.1', port: 5173, strictPort: true },
+  server: {
+    host: '127.0.0.1', port: 5173, strictPort: true,
+    // Packaging and smoke fixtures must not refresh a live, possibly unsaved draft.
+    watch: { ignored: ['**/dist/**', '**/release/**', '**/test-results/**'] },
+  },
   build: { outDir: path.join(root, 'dist', game, 'dist') },
 });

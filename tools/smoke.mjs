@@ -78,6 +78,14 @@ try {
   await ready(page);
   assert.equal(await page.title(), game.title);
   assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
+  assert.equal(await page.evaluate(() => typeof window.adv.authoring), 'undefined', 'Players must not receive authoring IPC');
+  assert.equal(await page.getByRole('button', { name: '流程编辑器', exact: true }).count(), 0);
+  const rendererAssets = path.join(packaged ? path.join(product, 'resources/app') : built, 'dist/assets');
+  for (const filename of await readdir(rendererAssets)) {
+    if (!filename.endsWith('.js')) continue;
+    const source = await readFile(path.join(rendererAssets, filename), 'utf8');
+    assert.ok(!source.includes('adv-editor-layout:') && !source.includes('预览未保存草稿'), 'Production JS must exclude the flow editor');
+  }
   const host = await app.evaluate(({ app, BrowserWindow }) => ({
     userData: app.getPath('userData'), packaged: app.isPackaged,
     preferences: BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),

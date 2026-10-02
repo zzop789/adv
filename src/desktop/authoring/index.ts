@@ -1,0 +1,1 @@
+export { AuthoringService } from './service';

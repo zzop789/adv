@@ -17,6 +17,7 @@
     "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
     "test:smoke": "node tools/smoke.mjs",
     "test:preview": "node tools/smoke-preview.mjs",
+    "test:editor": "node tools/smoke-editor.mjs",
     "check": "npm run typecheck && npm test"
   },
   "engines": {
